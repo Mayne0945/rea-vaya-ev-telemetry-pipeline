@@ -1,0 +1,10 @@
+# Security Shield: Protect your AWS Identity
+*.pem
+*.crt
+*.key
+certs.crt
+private.key
+AmazonRootCA1.pem
+AmazonRootCA3.pem
+__pycache__/
+.env
