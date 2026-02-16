@@ -35,6 +35,7 @@ graph LR
     style G fill:#232f3e,stroke:#fff,stroke-width:2px,color:#fff
     style ATH fill:#232f3e,stroke:#fff,stroke-width:2px,color:#fff
     style GRAF fill:#fff,stroke:#333,stroke-width:2px
+```
 
 ⚡ Key Features
 Real-Time Ingestion: Handles 50+ records/sec via AWS IoT Core (MQTT).
