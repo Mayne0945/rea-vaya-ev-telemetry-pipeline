@@ -40,32 +40,32 @@ graph LR
     style GRAF fill:#fff,stroke:#333,stroke-width:2px
 ```
 
-🧠 ###Key Engineering Decisions
+#### 🧠 Key Engineering Decisions
 Why Kinesis Firehose? Chosen over Kinesis Data Streams to handle batching (60s buffer) automatically, reducing S3 PUT costs and avoiding the "small file problem."
 
 Why Parquet (Silver Layer)? Converting raw JSON to Parquet reduced Athena query scan size by ~90%, significantly lowering query latency and cost.
 
 Why Serverless? Eliminated idle compute costs by using AWS IoT Core and Athena instead of provisioning EC2 instances or Kafka clusters.
 
-💰 ###Cost & Scalability Strategy
+#### 💰 Cost & Scalability Strategy
 Partitioning: Data is partitioned by time (Year/Month/Day) to limit query scope.
 
 Storage Tiers: Lifecycle policies configured to move Bronze data to Glacier after 30 days.
 
 On-Demand: The entire infrastructure scales to zero when no vehicles are active.
 
-📊 ###Performance Metrics
+#### 📊 Performance Metrics
 Ingestion Latency: < 200ms (Edge to Cloud).
 
 End-to-End Latency: ~60 seconds (Sensor to Dashboard).
 
 Throughput: Tested at 50+ records/second.
 
-🎥 ###Demo
+#### 🎥 Demo
 (Link your video here later)
 [Watch the Demo](LINK_TO_VIDEO)
 
-🧪 ###Simulation Setup
+#### 🧪 Simulation Setup
 The sentinel_active_node.py script acts as a digital twin, generating realistic telemetry:
 
 Engine RPM: Randomly fluctuates based on throttle position.
@@ -74,7 +74,7 @@ Battery Temp: gradually increases with load (simulating thermal stress).
 
 Location: Lat/Long coordinates for route mapping.
 
-💻 ###How to Run
+### 💻 How to Run
 Clone the repo:
 
 Bash
