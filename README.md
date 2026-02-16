@@ -102,5 +102,5 @@ pip install -r requirements.txt
 Run the producer:
 
 Bash
-python sentinel_active_node.py
+python src/sentinel_active_node.py
 Built with Python, AWS IoT Core, Kinesis Firehose, S3, Glue, Athena, and Grafana.
