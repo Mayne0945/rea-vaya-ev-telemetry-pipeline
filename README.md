@@ -7,8 +7,7 @@ Fleet operators lack real-time visibility into battery health and driver behavio
 A scalable, serverless IoT pipeline on AWS that ingests, processes, and visualizes high-frequency vehicle telemetry with **sub-minute latency**.
 
 ### 🏗 Architecture
-
-```mermaid
+```mermaid 
 graph LR
     subgraph "Edge (Vehicle)"
         V[EV Sensor Node] -->|MQTT| IOT[AWS IoT Core]
@@ -16,7 +15,7 @@ graph LR
 
     subgraph "Ingestion & Buffering"
         IOT -->|Rule| FH[Kinesis Firehose]
-        FH -->|Batch (60s)| S3_B[(S3 Bronze)]
+        FH -->|Batch 60s| S3_B[("S3 Bronze")]
     end
 
     subgraph "Data Lake & Processing"
