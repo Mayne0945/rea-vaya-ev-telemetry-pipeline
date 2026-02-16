@@ -1,54 +1,54 @@
 import json
 import boto3
+import awswrangler as wr
+import pandas as pd
+from datetime import datetime
 
-# Initialize the SNS client (Simple Notification Service)
-sns = boto3.client('sns')
-
-CRITICAL_TEMP_THRESHOLD = 60.0 
-TOPIC_ARN = "arn:aws:sns:eu-west-1:YOUR_ACCOUNT_ID:EV_Overheat_Alerts" # We will get this ARN from AWS Console later
+# Initialize S3 client
+s3_client = boto3.client('s3')
 
 def lambda_handler(event, context):
-    # 1. Parse the incoming data from IoT Core
-    # (AWS passes the data in the 'event' object)
     try:
-        vehicle_id = event['vehicle_id']
-        battery_temp = float(event['battery_temp'])
-        timestamp = event['timestamp']
+        # 1. Get Source Info
+        bucket = event['Records'][0]['s3']['bucket']['name']
+        key = event['Records'][0]['s3']['object']['key']
         
-        print(f"Analyzing data for {vehicle_id}: Temp is {battery_temp}°C")
-
-        # 2. Check logic: Is it too hot?
-        if battery_temp > CRITICAL_TEMP_THRESHOLD:
-            message = (
-                f"⚠️ CRITICAL ALERT: Vehicle {vehicle_id} is OVERHEATING!\n"
-                f"Current Temp: {battery_temp}°C\n"
-                f"Time: {timestamp}\n"
-                f"Action: Immediate cooldown required."
-            )
-            
-            # 3. Trigger the SNS Alert (Send Email/SMS)
-            response = sns.publish(
-                TopicArn=TOPIC_ARN,
-                Message=message,
-                Subject=f"🔥 ALERT: {vehicle_id} Critical Temp"
-            )
-            
-            print(f"Alert sent! Message ID: {response['MessageId']}")
-            return {
-                'statusCode': 200,
-                'body': json.dumps('Alert Sent Successfully')
-            }
-            
+        print(f"📥 Processing New File: s3://{bucket}/{key}")
+        
+        # 2. Read Raw JSON
+        response = s3_client.get_object(Bucket=bucket, Key=key)
+        raw_content = response['Body'].read().decode('utf-8')
+        json_content = json.loads(raw_content)
+        
+        # 3. UNWRAP THE SHADOW STATE
+        if 'state' in json_content and 'reported' in json_content['state']:
+            clean_data = json_content['state']['reported']
         else:
-            print(f"Vehicle {vehicle_id} is within safe limits.")
-            return {
-                'statusCode': 200,
-                'body': json.dumps('Status Normal')
-            }
+            # Fallback if you send flat data later
+            clean_data = json_content
 
-    except KeyError as e:
-        print(f"Error parsing data: {e}")
-        return {
-            'statusCode': 400,
-            'body': json.dumps('Error: Invalid Data Structure')
-        }
+        # 4. Convert to Flat DataFrame
+        # This turns 'telemetry': {'rpm': 3000} into column 'telemetry.rpm'
+        df = pd.json_normalize(clean_data)
+        
+        # 5. Add Partition Column
+        df['date'] = datetime.now().strftime('%Y-%m-%d')
+        
+        # 6. Write to Parquet
+        # prevents the "Overwrite" loop and registers the table automatically.
+        wr.s3.to_parquet(
+            df=df,
+            path="s3://ev-telemetry-vault-mayne/Silver/",
+            dataset=True,
+            mode="append",      # adds to existing data
+            database="ev_sentimel_db",
+            table="inclusive_ev_fleet",
+            partition_cols=["date"]
+        )
+        
+        print(f"🚀 Success! Appended to inclusive_ev_fleet.")
+        return "Success"
+
+    except Exception as e:
+        print(f"❌ Error: {str(e)}")
+        raise e

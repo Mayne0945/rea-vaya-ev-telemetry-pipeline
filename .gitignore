@@ -1,4 +1,4 @@
-# Security Shield: Protect your AWS Identity
+# Security Shield: Protect AWS Identity
 *.pem
 *.crt
 *.key
