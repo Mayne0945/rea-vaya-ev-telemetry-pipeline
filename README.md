@@ -42,48 +42,47 @@ graph LR
 ```
 
 #### 🧠 Key Engineering Decisions
-Event-Driven ETL: Used AWS Lambda triggered by S3 ObjectCreated events to instantly convert incoming JSON batches to Parquet. This ensures data is query-ready within seconds of arrival.The Lambda function normalizes Unix epoch timestamps into ISO-8601 format to ensure compatibility with Athena and time-series dashboards.
+- Event-Driven ETL: Used AWS Lambda triggered by S3 ObjectCreated events to instantly convert incoming JSON batches to Parquet. This ensures data is query-ready within seconds of arrival.The Lambda function normalizes Unix epoch timestamps into ISO-8601 format to ensure compatibility with Athena and time-series dashboards.
 
 
-Why Parquet? Converting raw JSON to Parquet reduced Athena query scan size by ~90%, significantly lowering query latency and cost.
+- Why Parquet? Converting raw JSON to Parquet reduced Athena query scan size by ~90%, significantly lowering query latency and cost.
 
-Why Kinesis Firehose? Chosen to handle buffering (60s) automatically, preventing the "small file problem" in S3 before the Lambda triggers.
+- Why Kinesis Firehose? Chosen to handle buffering (60s) automatically, preventing the "small file problem" in S3 before the Lambda triggers.
 
-Why Serverless? Eliminated idle compute costs by using AWS IoT Core and Athena instead of provisioning EC2 instances or Kafka clusters.
+- Why Serverless? Eliminated idle compute costs by using AWS IoT Core and Athena instead of provisioning EC2 instances or Kafka clusters.
 
 #### 💰 Cost & Scalability Strategy
+- The Lambda function only runs when data arrives (Pay-per-execution), eliminating idle EC2 costs.
 
-The Lambda function only runs when data arrives (Pay-per-execution), eliminating idle EC2 costs.
+- Partitioning: Data is partitioned by time (Year/Month/Day) to limit query scope.
 
-Partitioning: Data is partitioned by time (Year/Month/Day) to limit query scope.
+- Storage Tiers: Lifecycle policies configured to move Bronze data to Glacier after 30 days.
 
-Storage Tiers: Lifecycle policies configured to move Bronze data to Glacier after 30 days.
-
-On-Demand Execution: The architecture minimizes idle compute by relying exclusively on serverless services (IoT Core, Firehose, Athena), eliminating always-on EC2 infrastructure.
+- On-Demand Execution: The architecture minimizes idle compute by relying exclusively on serverless services (IoT Core, Firehose, Athena), eliminating always-on EC2 infrastructure.
 
 #### 📊 Performance Metrics
-Ingestion Latency: < 200ms (Edge to Cloud).
+- Ingestion Latency: < 200ms (Edge to Cloud).
 
-End-to-End Latency: ~60 seconds (Sensor To Dashboard).
+- End-to-End Latency: ~60 seconds (Sensor To Dashboard).
 
-Processing Latency: ~3 seconds (Lambda Cold Start + Execution).
+- Processing Latency: ~3 seconds (Lambda Cold Start + Execution).
 
-Throughput: Tested at 50+ records/second.
+- Throughput: Tested at 50+ records/second.
 
 #### 🎥 Demo
 (Link your video here later)
 [Watch the Demo](LINK_TO_VIDEO)
 
 #### 🧪 Simulation Setup
-The sentinel_active_node.py script acts as a digital twin, generating realistic telemetry:
+- The sentinel_active_node.py script acts as a digital twin, generating realistic telemetry:
 
-Engine RPM: Randomly fluctuates based on throttle position.
+- Engine RPM: Randomly fluctuates based on throttle position.
 
-Battery Temp: gradually increases with load (simulating thermal stress).
+- Battery Temp: gradually increases with load (simulating thermal stress).
 
-Location: Lat/Long coordinates for route mapping.
+- Location: Lat/Long coordinates for route mapping.
 
-## 🔐 Security Considerations
+#### 🔐 Security Considerations
 
 - Device authentication via AWS IoT X.509 certificates.
 - Lambda execution role restricted to Silver-layer S3 prefix.
