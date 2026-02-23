@@ -70,8 +70,7 @@ graph LR
 - Throughput: Tested at 50+ records/second.
 
 #### 🎥 Demo
-(Link your video here later)
-[Watch the Demo](LINK_TO_VIDEO)
+[Watch the Demo](https://youtu.be/ApqDj099toY)
 
 #### 🧪 Simulation Setup
 - The sentinel_active_node.py script acts as a digital twin, generating realistic telemetry:
